@@ -96,11 +96,11 @@ Para utilizar el CLI de .Net es necesario primero ubicarnos en la ruta a nivel d
 ```{bash}
 dotnet new blazorwasm -n <title of project>
 ```
-![Creación del Proyecto en Blazor WebAssembly desde CLI de .Net](image-7.png)
+![Creación del Proyecto en Blazor WebAssembly desde CLI de .Net](img/image-7.png)
 
 Una vez ejecutado el comando debe salir algo como la siguiente imagen.
 
-![Proyecto Creado en Blazor WebAssembly desde CLI de .Net](image.png)
+![Proyecto Creado en Blazor WebAssembly desde CLI de .Net](img/image.png)
 
 2. Ahora es necesario verificar que el proyecto compile correctamente, para ello vamos a utilizar el comando build. Es necesario estar en la ruta dentro del proyecto creado.
 
@@ -187,7 +187,7 @@ En este caso ambos se utilizan para poder ejecutar el proyecto.
 
 ### App.razor
 
-![App.razor](image-22.png)
+![App.razor](img/image-22.png)
 
 Este archivo va a contener toda aplicación y la arquitectura de componentes que vamos a ir creando.
 
@@ -195,7 +195,7 @@ Este archivo usualmente no se modifica, se extiende ya que se agrega nuevas conf
 
 ### Imports.razor
 
-![Imports.razor](image-23.png)
+![Imports.razor](img/image-23.png)
 
 En este archivo se hace algunas declaraciones de @using, de los @using que se van a utilizar.
 
@@ -207,7 +207,7 @@ De esta forma queda visible y expuesto para todos los componentes.
 
 ### Directorio wwwRoot
 
-![wwwroot](image-24.png)
+![wwwroot](img/image-24.png)
 
 Esta carpeta es clásica en .NET donde se almacenan los archivos estáticos del proyecto, por ejemplo los archivos css, html, carpetas de imágenes, iconos, etc.
 
@@ -215,7 +215,7 @@ Existe un solo archivo index.html, esto quiere decir que es un SPA, un simple pa
 
 ### Directorio Shared
 
-![Directorio Shared](image-25.png)
+![Directorio Shared](img/image-25.png)
 
 Este directorio tiene los componentes compartidos. Este es un concepto que lo veremos más adelante, pero es un concepto que se utiliza en Blazor para poder reutilizar componentes.
 
@@ -223,13 +223,13 @@ Hablamos de componentes genéricos que queremos utilizar en diferentes partes.
 
 ### Directorio Properties.
 
-![Directorio Properties](image-26.png)
+![Directorio Properties](img/image-26.png)
 
 La configuración de como se va a ejecutar la aplicación.
 
 ### Directorio Pages.
 
-![Directorio Pages](image-27.png)
+![Directorio Pages](img/image-27.png)
 
 Aquí se encuentran los componentes que se van a utilizar en la aplicación. Por defecto vienen 3 componentes.
 
@@ -239,7 +239,7 @@ Aquí se encuentran los componentes que se van a utilizar en la aplicación. Por
 
 ### Analizando la estructura de un componente.
 
-![Analizando el Componente Counter](image-28.png)1
+![Analizando el Componente Counter](img/image-28.png)1
 
 Lo más importante de un componente es entender su estructura general, por ejemplo empezamos con un **@page**, que es la ruta que va a tener el componente.
 
@@ -271,7 +271,7 @@ El ciclo de vida se refiere a los **eventos que ocurren desde que se crea un com
 
 #### Demo
 
-![Codigo de los Componentes modificados](image-29.png)
+![Codigo de los Componentes modificados](img/image-29.png)
 
 ```{razor}
 
@@ -424,7 +424,7 @@ En nuevas versiones de código se aconseja utilizar este nuevo parámetro
     }
 }
 ```
-![Pasando Parametros con CounterFromQuery](image-31.png)
+![Pasando Parametros con CounterFromQuery](img/image-31.png)
 
 Ejemplo de como se pasa el parametro con el QueryString
 
@@ -438,7 +438,7 @@ Una de las caracteristicas de los componentes compartidos es que no existe una r
 
 El componente SurveyPrompt es un componente compartido. Se puede acceder a él desde cualquier página, pero no tiene una ruta de página asociada. En este caso podemos observer que en su secci'on @code crea un string? que se llama Title y se invoca mediante @Title.
 
-![Componente SurveryPromt](image-32.png)
+![Componente SurveryPromt](img/image-32.png)
 
 Siempre que se crea un componente compartido es porque se va a reutilizar en varias partes de la aplicación.
 
@@ -448,7 +448,7 @@ En el caso del titulo se puede crear un componente compartido para reutilizar c�
 
 Creando un componente compartido para el titulo.
 
-![Ejemplo de la Impelmentación de un componente compartido](image-33.png)
+![Ejemplo de la Impelmentación de un componente compartido](img/image-33.png)
 
 ```{razor}
 <h1>@Title</h1>
@@ -470,14 +470,16 @@ Ahora lo podemos reutilizar en cualquier componente, la sintaxis que remplazarí
 
 En el directorio wwwroot se crea un archivo llamado appsettings.json
 
-![Agregando Configuraciones en el archivo appsettings.json](image-35.png)
+![Agregando Configuraciones en el archivo appsettings.json](img/image-35.png)
 
 ```{json}
+
+Esta configuración se puede cambiar
 {
     "Title": "Hello, world ESPE!"
 }
 ```
-![Servidor con la configuración desde el archivo appsetings.json](image-36.png)
+![Servidor con la configuración desde el archivo appsetings.json](img/image-36.png)
 
 Codigo del archivo Index.razor
 
@@ -514,10 +516,10 @@ Welcome to your new app.
 
 ### Creando Menú y CSS para la lista de productos.
 
-### Integrando formulario con servicios  -->
+### Integrando formulario con servicios  
 
 ## Usando Librerías de Blazor.
 
 ### Creando funcionalidad de eliminar usando javascript.
 
-### Usando Librerías Blazor.
+### Usando Librerías Blazor.-->
