@@ -609,15 +609,6 @@ public class ProductService : IProductService
             }
         }
 }
-
- public interface IProductService
-    {
-        Task<List<Product>?> Get();
-
-        Task Add(Product product);
-
-        Task Delete(int productId);
-    }
 ```
 
 De la misma forma incorporamos el archivo **Category.cs** y agregamos el siguiente codigo
@@ -649,57 +640,12 @@ public class CategoryService : ICategoryService
             return JsonSerializer.Deserialize<List<Category>>(content, options);
         }
 }
-
-public interface ICategoryService
-{
-    Task<List<Category>?> Get();
-
-}
 ```
 ## Mostrando lista de productos.
 
-Ahora vamos a implementar la interfaz, modificar un poco el codigo y realizar la configuracion en el archivo Program.cs
+Ahora vamos a implementar la interfaz, modificar un poco el codigo y realizar la configuracion al final en el archivo **ProductServices.cs**
 
 ```{csharp}
-namespace MiProyecto002
-
-public class ProductService : IProductService
-{
-    private readonly HttpClient client;
-
-    private readonly JsonSerializerOptions options;
-    private ProductService(HttpClient client, JsonSerializerOptions options)
-    {
-        client = httpClient;
-        options = optionsJson
-    }
-
-public async Task<List<Product>?> Get()
-    {
-        var response = await client.GetAsync("/products");
-        return await JsonSerializer.DeserializeAsync<List<Product>>(await response.Content.ReadAsStreamAsync());
-    }
-
-        public async Task Add(Product product)
-        {
-            var response = await client.PostAsync("/products", JsonContent.Create(product));
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new ApplicationException(content);
-            }
-        }
-
-        public async Task Delete(int productId)
-        {
-            var response = await client.DeleteAsync($"/products/{productId}");
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new ApplicationException(content);
-            }
-        }
-}
 
 public interface IProductService
 {
@@ -708,9 +654,19 @@ public interface IProductService
     Task Add(Product product);
 
     Task Delete(int productId);
+}
+```
+De la misma forma en el archivo **CategoryService.cs**.
+
+```{csharp}
+public interface ICategoryService
+{
+    Task<List<Category>?> Get();
+
+}
 ```
 
-En el archivo Program.cs realizamos la siguiente inserción de código.
+En el archivo **Program.cs** realizamos la siguiente inserción de código.
 
 ```{csharp}
 using Microsoft.AspNetCore.Components.Web;
@@ -722,6 +678,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiUrl = builder.Configuration.GetValue<string>("apiUrl");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
+
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
