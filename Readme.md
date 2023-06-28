@@ -271,7 +271,7 @@ El ciclo de vida se refiere a los **eventos que ocurren desde que se crea un com
 
 #### Demo
 
-![Codigo de los Componentes modificados](img/image-29.png)
+![Código de los Componentes modificados](img/image-29.png)
 
 ```{razor}
 
@@ -291,12 +291,12 @@ El ciclo de vida se refiere a los **eventos que ocurren desde que se crea un com
 
     protected override void OnParametersSet()
     {
-        logger.LogInformation("Se envian los parametros");
+        logger.LogInformation("Se envian los parámetros");
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
-        logger.LogInformation("esto ocurre despues de iniciar el componente");
+        logger.LogInformation("esto ocurre después de iniciar el componente");
     }
 
     private void IncrementCount()
@@ -342,7 +342,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 
     protected override void OnParametersSet()
     {
-        logger.LogInformation("Se envian los parametros");
+        logger.LogInformation("Se envían los parámetros");
     }
 
     protected override void OnInitialized()
@@ -354,7 +354,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 
     protected override void OnAfterRender(bool firstRender)
     {
-        logger.LogInformation("esto ocurre despues de iniciar el componente");
+        logger.LogInformation("esto ocurre después de iniciar el componente");
     }
 
     private void IncrementCount()
@@ -364,7 +364,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 }
 ```
 
-![Seccion de Parámetros en el código](image-30.png)
+![Seccion de Parámetros en el código](/img/image-30.png)
 
 En nuevas versiones de código se aconseja utilizar este nuevo parámetro
 
@@ -505,14 +505,239 @@ Welcome to your new app.
    }
 }
 ```
+ ## Conectando Blazor a Backend.
 
-<!-- ## Conectando Blazor a Backend.
+Ahora vamos a conectarnos a un API desde el archivo de configuración, existen muchos API en el mundo que podemos utilizar de forma gratuita, otros tienen un costo, sin embargo vamos a buscar un API gratuito para poder trabajar sin inconvenientes.
 
-### Configurando conexión al backend para el proyecto.
+Agregamos la siguiente línea al archivo.
 
-### Creando Componentes para la conexión a la API.
+```{json}
+"apiUrl" : "https://api.escuelajs.co/api/"
+```
 
-### Mostrando lista de productos.
+En el archivo **Program.cs** se agrega la siguiente línea de código.
+
+```{csharp}
+var apiUrl = builder.Configuration.GetValue<string>("apiUrl");
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
+```
+## Creando Componentes para la conexión a la API.
+
+**Nota:** Con esta web, es posible autogenerar las clases a partir de un objeto json
+
+[https://quicktype.io/csharp](https://quicktype.io/csharp)
+
+Empezamos creando el directorio en la raiz del proyecto denominado **Models**, seguido creamos el archivo **Products.cs**, le agregamos el siguiente codigo.
+
+```{csharp}
+namespace MiProyecto002
+
+public class Product
+{
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public decimal? Price { get; set; }
+        public string Description { get; set; }
+        public int CategoryId { get; set; }
+        public string[] Images { get; set; }
+        public string? Image { get; set; }
+}
+```
+
+Ahora creamos el archivo **Category.cs** y agregamos el siguiente codigo.
+
+```{csharp}
+namespace MiProyecto002
+public class Category
+{
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
+}
+```
+
+Ahora creamos un directorio llamado **Services** en el directorio principal, creamos el archivo **ProductService.cs** y agregamos el siguiente codigo.
+
+```{csharp}
+using System.Net.Http.Json;
+using System.Text.Json;
+
+namespace MiProyecto002
+
+
+public class ProductService : IProductService
+{
+    private readonly HttpClient client;
+
+    private readonly JsonSerializerOptions options; 
+
+    public ProductService( HttpClient httpClient)
+    {
+        client = httpClient;
+        options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    }
+
+        public async Task<List<Product>?> Get()
+        {
+            var response = await client.GetAsync("v1/products");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+
+            return JsonSerializer.Deserialize<List<Product>>(content, options);
+        }
+
+        public async Task Add(Product product)
+        {
+            var response = await client.PostAsync("v1/products", JsonContent.Create(product));
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+        }
+
+        public async Task Delete(int productId)
+        {
+            var response = await client.DeleteAsync($"v1/products/{productId}");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+        }
+}
+```
+
+De la misma forma incorporamos el archivo **Category.cs** y agregamos el siguiente codigo
+
+```{csharp}
+using System.Text.Json;
+
+namespace MiProyecto002;
+
+public class CategoryService : ICategoryService
+{
+      private readonly HttpClient client;
+        private readonly JsonSerializerOptions options;
+        public CategoryService(HttpClient client)
+        {
+            this.client = client;
+            options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        }
+
+        public async Task<List<Category>?> Get()
+        {
+            var response = await client.GetAsync("v1/categories");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+
+            return JsonSerializer.Deserialize<List<Category>>(content, options);
+        }
+}
+```
+## Mostrando lista de productos.
+
+Ahora vamos a implementar la interfaz, modificar un poco el codigo y realizar la configuracion al final en el archivo **ProductServices.cs**
+
+```{csharp}
+
+public interface IProductService
+{
+    Task<List<Category>?> Get();
+
+    Task Add(Product product);
+
+    Task Delete(int productId);
+}
+```
+De la misma forma en el archivo **CategoryService.cs**.
+
+```{csharp}
+public interface ICategoryService
+{
+    Task<List<Category>?> Get();
+
+}
+```
+
+En el archivo **Program.cs** realizamos la siguiente inserción de código.
+
+```{csharp}
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MiProyecto002;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+var apiUrl = builder.Configuration.GetValue<string>("apiUrl");
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
+
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+await builder.Build().RunAsync();
+```
+
+Ahora vamos a crear los componentes en la sección de Pages.
+
+Creamos el archivo Products.razor y agregamos el siguiente codigo.
+
+```{csharp}
+@page "/product"
+@inject ILogger<Products> logger;
+@inject IProductService productService;
+
+<PageTitle>Products</PageTitle>
+
+<ModuleTitle Title="Products" />
+
+@if(products?.Count > 0)
+{
+    <div class="products-container">
+        @foreach (var product in products)
+        {
+            <div class="card">
+                <img class="card-img-top" src="@product.Images[0]" alt="Product" loading="lazy" width="270" height="210">
+                <div class="card-body">
+                    <h4><b>@product.Title</b></h4>
+                    <p>@product.Price?.ToString("C")</p>
+                </div>
+            </div>
+        }
+    </div>
+
+}
+else
+{
+    <p>No hay productos para mostrar</p>
+}
+
+@code
+{
+    private List<Product>? products;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        products = await GetProducts();
+    }
+
+    private async Task<List<Product>> GetProducts()
+        {
+            return await productService.Get();
+        }
+
+}
+```
+Si todo ha salido bien ahora vamos a correr el servidor, si es necesario corregir errores de sintaxis y si no podemos ver los productos en la pantalla.
+
+<!--
 
 ### Creando Menú y CSS para la lista de productos.
 
