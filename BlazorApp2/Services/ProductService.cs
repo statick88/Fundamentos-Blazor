@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace blazorappdemo;
+namespace BlazorApp2;
 
 public class ProductService : IProductService
 {
@@ -48,7 +48,7 @@ public class ProductService : IProductService
         }
 }
 
-public interface IProductService
+ public interface IProductService
     {
         Task<List<Product>?> Get();
 

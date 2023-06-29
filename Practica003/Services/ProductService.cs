@@ -1,8 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace blazorappdemo;
-
+namespace Practica003
 public class ProductService : IProductService
 {
     private readonly HttpClient client;
@@ -46,13 +45,14 @@ public class ProductService : IProductService
                 throw new ApplicationException(content);
             }
         }
+
+        
 }
-
 public interface IProductService
-    {
-        Task<List<Product>?> Get();
+{
+    Task<List<Category>?> Get();
 
-        Task Add(Product product);
+    Task Add(Product product);
 
-        Task Delete(int productId);
-    }
+    Task Delete(int productId);
+}
