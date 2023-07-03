@@ -507,6 +507,8 @@ Welcome to your new app.
 ```
  ## Conectando Blazor a Backend.
 
+ Nota: En este punto puedes crear un proyecto nuevo con la version del SDK 6 de .Net, esto con el fin de evitar incompatibilidades.
+
 Ahora vamos a conectarnos a un API desde el archivo de configuración, existen muchos API en el mundo que podemos utilizar de forma gratuita, otros tienen un costo, sin embargo vamos a buscar un API gratuito para poder trabajar sin inconvenientes.
 
 Agregamos la siguiente línea al archivo.
@@ -737,14 +739,145 @@ else
 ```
 Si todo ha salido bien ahora vamos a correr el servidor, si es necesario corregir errores de sintaxis y si no podemos ver los productos en la pantalla.
 
-<!--
-
 ### Creando Menú y CSS para la lista de productos.
+
+En el archivo ProductService.cs creamos la etiqueta css
+
+```{css}
+<style>
+    .products-container{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, 280px);
+    grid-auto-rows:auto;
+    grid-gap: 1rem;
+    }
+</style>
+```
+Sin embargo esta no es la mejor práctica, es por ello necesario que migremos este codigo css a un nuevo archivo que se encuentra en la sección Pages, creamos el archivo **Products.razor.css** y movemos lo que se encuentra dentro de la etiqueta **style**, a esta sección.
+
+Ahora vamos a agregar nuestra url product a la sección de menú.
+
+Agregamos el siguiente div en la sección Shared/NavMenu.razor
+
+```{razor}
+<div class="nav-item px-3">
+    <NavLink class="nav-link" href="product">
+        <span class="oi oi-list-rich" aria-hidden="true"></span> Products
+    </NavLink>
+</div>
+```
+### Creando un formulario para agregar registros.
+
+Creamos el directorio Products dentro de Pages para evitar que se desordene el proyecto llamado Products.
+
+Dentro del mismo agrupamos los archivos Products.razor y Products.razor.css, agregamos un nuevo archivo llamado AddProduct.razor con el siguiente codigo
+
+```{razor}
+@page "/addproduct"
+@inject IProductService productService
+@inject ICategoryService categoryService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add - Product</PageTitle>
+
+<ModuleTitle Title="Add product"></ModuleTitle>
+
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Go back products</button>
+<EditForm Model="@product">
+    <div class="row">
+        <div class="col-8 form-group">
+            <label for="title" class="col-form-label">Title</label>
+            <InputText id="title" @bind-Value="product.Title" required class="form-control" />
+        </div>
+    </div>
+</EditForm>
+
+@code
+{
+    private Product product = new();
+}
+```
+Ahora agregamos el botón a nuestro archivo Products.razor
+
+```{razor}
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/addproduct"))">Add Product</button>
+```
+
+no nos olvidamos de inyectar la dependencia para no tener inconvenientes
+
+```{razor}
+@inject NavigationManager NavigationManager
+```
+
+corremos una vez mas nuestro servidor para probar
 
 ### Integrando formulario con servicios  
 
-## Usando Librerías de Blazor.
+Agregamos el siguiente código al archivo AddProduct.razor.
 
-### Creando funcionalidad de eliminar usando javascript.
+```{razor}
+@page "/addproduct"
+@inject IProductService productService
+@inject ICategoryService categoryService
+@inject NavigationManager NavigationManager
 
-### Usando Librerías Blazor.-->
+<PageTitle>Add - Product</PageTitle>
+
+<ModuleTitle Title="Add product"></ModuleTitle>
+
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Go back products</button>
+<EditForm Model="@product" OnSubmit="@Save">
+       <div class="row">
+        <div class="col-8 form-group">
+            <label for="title" class="col-form-label">Title</label>
+            <InputText id="title" @bind-Value="product.Title" required class="form-control" />
+        </div>
+        <div class="col form-group">
+            <label for="price" class="col-form-label">Price</label>
+            <InputNumber id="price" @bind-Value="product.Price" min="0" required class="form-control" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col form-group">
+            <label for="category" class="col-form-label">Category</label>
+            <InputSelect id="category" @bind-Value="product.CategoryId" required class="form-control">
+                <option>Select Category...</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col form-group">
+            <label for="image" class="col-form-label">Image (Url)</label>
+            <InputText id="image" @bind-Value="product.Image" required class="form-control" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="description" class="col-form-label">Description</label>
+        <InputTextArea id="description" @bind-Value="product.Description" required class="form-control"></InputTextArea>
+    </div>
+
+    <hr />
+    <button class="btn btn-primary" type="submit">Save</button>
+</EditForm>
+
+@code
+{
+    private Product product = new();
+
+    private List<Category> categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryService.Get();
+    }
+
+    private async Task Save()
+    {
+        product.Images = new string[1] { product.Image };
+        await productService.Add(product);
+        NavigationManager.NavigateTo("/product");
+    }
+}
+```
