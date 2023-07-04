@@ -3,13 +3,14 @@
 @inject IProductService productService;
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
+@inject IToastService toastService
 
 <PageTitle>Products</PageTitle>
 
 <ModuleTitle Title="Products" />
 
 <button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/addproduct"))">Add Product</button>
+
 
 @if(products?.Count > 0)
 {
@@ -39,13 +40,12 @@ else
     
     protected override async Task OnInitializedAsync()
     {
-        products = await productService.Get();
-
+        await GetProducts();
     }
 
-    private async Task<List<Product>> GetProducts()
+    private async Task GetProducts()
         {
-            return await productService.Get();
+            products = await productService.Get();
         }
 
     private async Task DeleteProduct(Product product)
@@ -54,6 +54,8 @@ else
             return;
 
         await productService.Delete(product.Id);
+
+        toastService.ShowSuccess("Producto eliminado");
 
         await GetProducts();
     }
