@@ -881,3 +881,98 @@ Agregamos el siguiente código al archivo AddProduct.razor.
     }
 }
 ```
+
+### Creando funcionalidad de eliminar usando JavaScript
+
+En el archivo Products.razor vamos a crear una nueva inyección de dependencias 
+
+```{razor}
+@inject IJSRuntime JSRuntime
+```
+Debajo de la tarea GetProducts() vamos a crear la Tarea de Eliminar Productos.
+
+```{razor}
+    private async Task DeleteProduct(Product product)
+    {
+        if(!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to remove {product.Title}" ))
+            return;
+
+        await productService.Delete(product.Id);
+
+        await GetProducts();
+```
+Excelente, ahora vamos a agregar nustro boton de Eliminar en la sección visual de nuestro producto, para ello nos ubicamos al final de nuestro div, y bajo la sección donde se invoca @product.Product? incrustamos esta línea de código.
+
+```{razor}
+<button title="Delete" class="btn btn-danger btn-delete" @onclick="@(() => DeleteProduct(product))"><span class="oi oi-trash"></span></button>
+```
+Perfecto, si probamos la eliminación se produce pero no se refresca, para evitar que este inconveniente se presente vamos a modificar un poco el código, en la sección de Task donde se invoca GetProducts, vamos a cambiar la línea de código
+
+```{razor}
+products = await GetProducts();
+```
+
+Por la siguiente línea.
+
+```{razor}
+products = await productService.Get();
+
+```
+De esta forma corregimos este error y hemos completado la funcionalidad de eliminar, hemos utilizado el feacture de blazor que nos permite implementar javascript
+
+### Usando Librerías de Blazor
+
+Existen muchas librerias que podemos utilizar para poder extender las funcionalidades de nuestro proyecto y poder potencializarlo. Una de estas opciones es [Telerik](https://www.telerik.com/) donde se puede descargar una versión de prueba.
+
+Por otra parte existe [Syncfuncion](https://www.syncfusion.com/) y tambien se puede descargar una función gratuita por un tiempo limitado.
+
+Otra opción interesante de código abierto es [https://mudblazor.com/](mudblazor)
+
+Tenemos tambien [Blazor Radzen](https://blazor.radzen.com/) que nos permite trabajar de forma gratuita muy interesante que podemos ir agregando.
+
+Por otra parte es [Blazored](https://github.com/Blazored) de este únltimo vamos a utilizar [toast](https://github.com/Blazored/Toast), es un control que nos muestra una notificación que se puede cerrar o eliminar despues de algunos segundos.
+
+Volvamos al proyecto
+
+vamos a agregar el siguiente comando
+
+```{bash}
+dotnet add package Blazored.Toast
+```
+Ahora debemos configurar el servicio dentro del archivo Program.cs y agregamos la siguiente linea.
+
+```{c#}
+builder.Services.AddBlazoredToast();
+```
+
+Muy bien, ahora vamos a agregar en el archivo _Imports.razor dentro del directoreio wwwroot, de esta forma los agregamos de forma global y no debemos ir agregando en cada componente
+
+```{razor}
+@using Blazored.Toast
+@using Blazored.Toast.Services
+```
+Ahora vamos a agregar dentro del componente de MainLayout.razor dentro del directoreio Shared
+
+```{razor}
+<BlazoredToasts />
+```
+
+Ahora agregamos los estilos, para ello nos dirigimos a index.html dentro del directorio wwwroot 
+
+```{html}
+    <link href="_content/Blazored.Toast/blazored-toast.min.css" rel="stylesheet" />
+```
+Si seguimos los pasos correctos ahora estamos listos para utilizar la librería. La implementamos para poder recibir una notificación al momento de eliminar un registro.
+
+Dentro del archivo Products.razor empezamos inyectando el servicio de esta librería.
+
+```{razor}
+@inject IToastService toastService
+```
+
+Una vez inyectado el servicio podemos utilizarlo, para ello vamos a la secci'on antes del await GetProduct() (en la parte final) e implementamos el servicio.
+
+
+```{razor}
+    toastService.ShowSuccess("Producto eliminado");
+```
