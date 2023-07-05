@@ -926,7 +926,7 @@ Existen muchas librerias que podemos utilizar para poder extender las funcionali
 
 Por otra parte existe [Syncfuncion](https://www.syncfusion.com/) y tambien se puede descargar una función gratuita por un tiempo limitado.
 
-Otra opción interesante de código abierto es [https://mudblazor.com/](mudblazor)
+Otra opción interesante de código abierto es[mudblazor](https://mudblazor.com/)
 
 Tenemos tambien [Blazor Radzen](https://blazor.radzen.com/) que nos permite trabajar de forma gratuita muy interesante que podemos ir agregando.
 
