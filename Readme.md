@@ -271,7 +271,7 @@ El ciclo de vida se refiere a los **eventos que ocurren desde que se crea un com
 
 #### Demo
 
-![Codigo de los Componentes modificados](img/image-29.png)
+![Código de los Componentes modificados](img/image-29.png)
 
 ```{razor}
 
@@ -291,12 +291,12 @@ El ciclo de vida se refiere a los **eventos que ocurren desde que se crea un com
 
     protected override void OnParametersSet()
     {
-        logger.LogInformation("Se envian los parametros");
+        logger.LogInformation("Se envian los parámetros");
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
-        logger.LogInformation("esto ocurre despues de iniciar el componente");
+        logger.LogInformation("esto ocurre después de iniciar el componente");
     }
 
     private void IncrementCount()
@@ -342,7 +342,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 
     protected override void OnParametersSet()
     {
-        logger.LogInformation("Se envian los parametros");
+        logger.LogInformation("Se envían los parámetros");
     }
 
     protected override void OnInitialized()
@@ -354,7 +354,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 
     protected override void OnAfterRender(bool firstRender)
     {
-        logger.LogInformation("esto ocurre despues de iniciar el componente");
+        logger.LogInformation("esto ocurre después de iniciar el componente");
     }
 
     private void IncrementCount()
@@ -364,7 +364,7 @@ Ahora revisamos la sección de parámetros en nuestro código.
 }
 ```
 
-![Seccion de Parámetros en el código](image-30.png)
+![Seccion de Parámetros en el código](/img/image-30.png)
 
 En nuevas versiones de código se aconseja utilizar este nuevo parámetro
 
@@ -505,21 +505,379 @@ Welcome to your new app.
    }
 }
 ```
+ ## Conectando Blazor a Backend.
 
-<!-- ## Conectando Blazor a Backend.
+ Nota: En este punto puedes crear un proyecto nuevo con la version del SDK 6 de .Net, esto con el fin de evitar incompatibilidades.
 
-### Configurando conexión al backend para el proyecto.
+Ahora vamos a conectarnos a un API desde el archivo de configuración, existen muchos API en el mundo que podemos utilizar de forma gratuita, otros tienen un costo, sin embargo vamos a buscar un API gratuito para poder trabajar sin inconvenientes.
 
-### Creando Componentes para la conexión a la API.
+Agregamos la siguiente línea al archivo.
 
-### Mostrando lista de productos.
+```{json}
+"apiUrl" : "https://api.escuelajs.co/api/"
+```
+
+En el archivo **Program.cs** se agrega la siguiente línea de código.
+
+```{csharp}
+var apiUrl = builder.Configuration.GetValue<string>("apiUrl");
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
+```
+## Creando Componentes para la conexión a la API.
+
+**Nota:** Con esta web, es posible autogenerar las clases a partir de un objeto json
+
+[https://quicktype.io/csharp](https://quicktype.io/csharp)
+
+Empezamos creando el directorio en la raiz del proyecto denominado **Models**, seguido creamos el archivo **Products.cs**, le agregamos el siguiente codigo.
+
+```{csharp}
+namespace MiProyecto002
+
+public class Product
+{
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public decimal? Price { get; set; }
+        public string Description { get; set; }
+        public int CategoryId { get; set; }
+        public string[] Images { get; set; }
+        public string? Image { get; set; }
+}
+```
+
+Ahora creamos el archivo **Category.cs** y agregamos el siguiente codigo.
+
+```{csharp}
+namespace MiProyecto002
+public class Category
+{
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Image { get; set; }
+}
+```
+
+Ahora creamos un directorio llamado **Services** en el directorio principal, creamos el archivo **ProductService.cs** y agregamos el siguiente codigo.
+
+```{csharp}
+using System.Net.Http.Json;
+using System.Text.Json;
+
+namespace MiProyecto002
+
+
+public class ProductService : IProductService
+{
+    private readonly HttpClient client;
+
+    private readonly JsonSerializerOptions options; 
+
+    public ProductService( HttpClient httpClient)
+    {
+        client = httpClient;
+        options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    }
+
+        public async Task<List<Product>?> Get()
+        {
+            var response = await client.GetAsync("v1/products");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+
+            return JsonSerializer.Deserialize<List<Product>>(content, options);
+        }
+
+        public async Task Add(Product product)
+        {
+            var response = await client.PostAsync("v1/products", JsonContent.Create(product));
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+        }
+
+        public async Task Delete(int productId)
+        {
+            var response = await client.DeleteAsync($"v1/products/{productId}");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+        }
+}
+```
+
+De la misma forma incorporamos el archivo **Category.cs** y agregamos el siguiente codigo
+
+```{csharp}
+using System.Text.Json;
+
+namespace MiProyecto002;
+
+public class CategoryService : ICategoryService
+{
+      private readonly HttpClient client;
+        private readonly JsonSerializerOptions options;
+        public CategoryService(HttpClient client)
+        {
+            this.client = client;
+            options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        }
+
+        public async Task<List<Category>?> Get()
+        {
+            var response = await client.GetAsync("v1/categories");
+            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException(content);
+            }
+
+            return JsonSerializer.Deserialize<List<Category>>(content, options);
+        }
+}
+```
+## Mostrando lista de productos.
+
+Ahora vamos a implementar la interfaz, modificar un poco el codigo y realizar la configuracion al final en el archivo **ProductServices.cs**
+
+```{csharp}
+
+public interface IProductService
+{
+    Task<List<Category>?> Get();
+
+    Task Add(Product product);
+
+    Task Delete(int productId);
+}
+```
+De la misma forma en el archivo **CategoryService.cs**.
+
+```{csharp}
+public interface ICategoryService
+{
+    Task<List<Category>?> Get();
+
+}
+```
+
+En el archivo **Program.cs** realizamos la siguiente inserción de código.
+
+```{csharp}
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MiProyecto002;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+var apiUrl = builder.Configuration.GetValue<string>("apiUrl");
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUrl) });
+
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+await builder.Build().RunAsync();
+```
+
+Ahora vamos a crear los componentes en la sección de Pages.
+
+Creamos el archivo Products.razor y agregamos el siguiente codigo.
+
+```{csharp}
+@page "/product"
+@inject ILogger<Products> logger;
+@inject IProductService productService;
+
+<PageTitle>Products</PageTitle>
+
+<ModuleTitle Title="Products" />
+
+@if(products?.Count > 0)
+{
+    <div class="products-container">
+        @foreach (var product in products)
+        {
+            <div class="card">
+                <img class="card-img-top" src="@product.Images[0]" alt="Product" loading="lazy" width="270" height="210">
+                <div class="card-body">
+                    <h4><b>@product.Title</b></h4>
+                    <p>@product.Price?.ToString("C")</p>
+                </div>
+            </div>
+        }
+    </div>
+
+}
+else
+{
+    <p>No hay productos para mostrar</p>
+}
+
+@code
+{
+    private List<Product>? products;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        products = await GetProducts();
+    }
+
+    private async Task<List<Product>> GetProducts()
+        {
+            return await productService.Get();
+        }
+
+}
+```
+Si todo ha salido bien ahora vamos a correr el servidor, si es necesario corregir errores de sintaxis y si no podemos ver los productos en la pantalla.
 
 ### Creando Menú y CSS para la lista de productos.
 
+En el archivo ProductService.cs creamos la etiqueta css
+
+```{css}
+<style>
+    .products-container{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, 280px);
+    grid-auto-rows:auto;
+    grid-gap: 1rem;
+    }
+</style>
+```
+Sin embargo esta no es la mejor práctica, es por ello necesario que migremos este codigo css a un nuevo archivo que se encuentra en la sección Pages, creamos el archivo **Products.razor.css** y movemos lo que se encuentra dentro de la etiqueta **style**, a esta sección.
+
+Ahora vamos a agregar nuestra url product a la sección de menú.
+
+Agregamos el siguiente div en la sección Shared/NavMenu.razor
+
+```{razor}
+<div class="nav-item px-3">
+    <NavLink class="nav-link" href="product">
+        <span class="oi oi-list-rich" aria-hidden="true"></span> Products
+    </NavLink>
+</div>
+```
+### Creando un formulario para agregar registros.
+
+Creamos el directorio Products dentro de Pages para evitar que se desordene el proyecto llamado Products.
+
+Dentro del mismo agrupamos los archivos Products.razor y Products.razor.css, agregamos un nuevo archivo llamado AddProduct.razor con el siguiente codigo
+
+```{razor}
+@page "/addproduct"
+@inject IProductService productService
+@inject ICategoryService categoryService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add - Product</PageTitle>
+
+<ModuleTitle Title="Add product"></ModuleTitle>
+
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Go back products</button>
+<EditForm Model="@product">
+    <div class="row">
+        <div class="col-8 form-group">
+            <label for="title" class="col-form-label">Title</label>
+            <InputText id="title" @bind-Value="product.Title" required class="form-control" />
+        </div>
+    </div>
+</EditForm>
+
+@code
+{
+    private Product product = new();
+}
+```
+Ahora agregamos el botón a nuestro archivo Products.razor
+
+```{razor}
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/addproduct"))">Add Product</button>
+```
+
+no nos olvidamos de inyectar la dependencia para no tener inconvenientes
+
+```{razor}
+@inject NavigationManager NavigationManager
+```
+
+corremos una vez mas nuestro servidor para probar
+
 ### Integrando formulario con servicios  
 
-## Usando Librerías de Blazor.
+Agregamos el siguiente código al archivo AddProduct.razor.
 
-### Creando funcionalidad de eliminar usando javascript.
+```{razor}
+@page "/addproduct"
+@inject IProductService productService
+@inject ICategoryService categoryService
+@inject NavigationManager NavigationManager
 
-### Usando Librerías Blazor.-->
+<PageTitle>Add - Product</PageTitle>
+
+<ModuleTitle Title="Add product"></ModuleTitle>
+
+<button class="btn btn-dark" @onclick="@(()=> NavigationManager.NavigateTo("/product"))">Go back products</button>
+<EditForm Model="@product" OnSubmit="@Save">
+       <div class="row">
+        <div class="col-8 form-group">
+            <label for="title" class="col-form-label">Title</label>
+            <InputText id="title" @bind-Value="product.Title" required class="form-control" />
+        </div>
+        <div class="col form-group">
+            <label for="price" class="col-form-label">Price</label>
+            <InputNumber id="price" @bind-Value="product.Price" min="0" required class="form-control" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col form-group">
+            <label for="category" class="col-form-label">Category</label>
+            <InputSelect id="category" @bind-Value="product.CategoryId" required class="form-control">
+                <option>Select Category...</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col form-group">
+            <label for="image" class="col-form-label">Image (Url)</label>
+            <InputText id="image" @bind-Value="product.Image" required class="form-control" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="description" class="col-form-label">Description</label>
+        <InputTextArea id="description" @bind-Value="product.Description" required class="form-control"></InputTextArea>
+    </div>
+
+    <hr />
+    <button class="btn btn-primary" type="submit">Save</button>
+</EditForm>
+
+@code
+{
+    private Product product = new();
+
+    private List<Category> categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await categoryService.Get();
+    }
+
+    private async Task Save()
+    {
+        product.Images = new string[1] { product.Image };
+        await productService.Add(product);
+        NavigationManager.NavigateTo("/product");
+    }
+}
+```
