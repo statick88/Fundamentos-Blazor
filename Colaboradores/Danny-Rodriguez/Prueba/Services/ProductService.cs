@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
-
-namespace PruebaG5;
+using Prueba.Models;
 
 public class ProductService : IProductService
 {
@@ -17,28 +16,12 @@ public class ProductService : IProductService
 
     public async Task<List<Product>> GetProducts()
     {
-        var response = await httpClient.GetAsync("api/products");
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            var products = JsonSerializer.Deserialize<List<Product>>(content);
-            return products;
-        }
-        else
-        {
-            throw new Exception("No se pudieron obtener los productos.");
-        }
+        return await httpClient.GetFromJsonAsync<List<Product>>("https://fakestoreapi.com/products");
     }
 
-    public async Task Delete(int productId)
+    public async Task<bool> DeleteProduct(int productId)
     {
-        var response = await httpClient.DeleteAsync($"v1/products/{productId}");
-        var content = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new ApplicationException(content);
-        }
+        var response = await httpClient.DeleteAsync($"https://fakestoreapi.com/products/{productId}");
+        return response.IsSuccessStatusCode;
     }
-
 }
-

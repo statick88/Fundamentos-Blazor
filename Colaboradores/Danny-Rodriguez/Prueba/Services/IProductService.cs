@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Text.Json;
-
-namespace PruebaG5;
+using Prueba.Models;
 
 public interface IProductService
-   {
-        Task<List<Product>> GetProducts();
-        Task Delete(int productId);
-    }
-
+{
+    Task<List<Product>> GetProducts();
+    Task<bool> DeleteProduct(int productId);
+}
