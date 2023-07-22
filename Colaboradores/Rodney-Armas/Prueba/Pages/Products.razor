@@ -1,0 +1,44 @@
+@page "/products"
+@inject IProductService productService
+@using Prueba.Models
+@inject IToastService ToastService
+
+<h3>Lista de Productos</h3>
+@if (products != null)
+{
+    <ul>
+        @foreach (var product in products)
+        {
+            <li>@product.Title - @product.Price <button @onclick="() => DeleteProduct(product)">Eliminar</button></li>
+        }
+    </ul>
+}
+else
+{
+    <p>No se encontraron productos.</p>
+}
+
+@code {
+    private List<Product> products;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        products = await productService.GetProducts();
+    }
+    
+    private async Task DeleteProduct(Product product)
+    {
+        bool result = await productService.DeleteProduct(product.Id);
+        if (result)
+        {
+            products.Remove(product);
+            ToastService.ShowSuccess("Producto eliminado correctamente.");
+        }
+        else
+        {
+            ToastService.ShowError("No se pudo eliminar el producto.");
+        }
+    }
+}
+
+
